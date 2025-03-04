@@ -7,6 +7,30 @@ spl_autoload_register(function($class) {
 });
 
 use Helpers\Settings;
+use Database\MySQLWrapper;
+/*
+ * https://www.php.net/manual/en/class.mysqli.php で利用可能なすべてのメソッドを確認できます。
+ */
+$mysqli = new MySQLWrapper('localhost', Settings::env('DATABASE_USER'), Settings::env('DATABASE_USER_PASSWORD'), Settings::env('DATABASE_NAME'));
 
-printf("Local database username: %s\n", Settings::env('DATABASE_USER'));
-printf("Local database password (hashed): %s\n", password_hash(Settings::env('DATABASE_USER_PASSWORD'), PASSWORD_DEFAULT));
+// https://www.php.net/manual/en/mysqli.get-charset.php
+$charset = $mysqli->get_charset();
+
+if($charset === null) throw new Exception('Charset could be read');
+
+// データベースの文字セット、照合順序、統計情報について取得します。
+printf(
+    "%s's charset: %s.%s",
+    Settings::env('DATABASE_NAME'),
+    $charset->charset,
+    PHP_EOL
+);
+
+printf(
+    "collation: %s.%s",
+    $charset->collation,
+    PHP_EOL
+);
+
+// 接続を閉じるには、closeメソッドを使用します。
+$mysqli->close();
