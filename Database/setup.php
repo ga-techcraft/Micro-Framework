@@ -5,35 +5,12 @@ use Database\MySQLWrapper;
 $mysqli = new MySQLWrapper();
 
 // carsテーブルの作成
-$result = $mysqli->query("
-    CREATE TABLE IF NOT EXISTS cars (
-      id INT PRIMARY KEY AUTO_INCREMENT,
-      make VARCHAR(50),
-      model VARCHAR(50),
-      year INT,
-      color VARCHAR(20),
-      price FLOAT,
-      mileage FLOAT,
-      transmission VARCHAR(20),
-      engine VARCHAR(20),
-      status VARCHAR(10)
-    );
-");
+$result = $mysqli->query(file_get_contents(__DIR__ . '/Examples/cars-setup.sql'));
 if($result === false) throw new Exception('Could not execute query.');
 else print("Successfully ran all SQL setup queries.".PHP_EOL);
 
 // partsテーブルの作成
-$result = $mysqli->query("
-    CREATE TABLE IF NOT EXISTS parts (
-      id INT PRIMARY KEY AUTO_INCREMENT,
-      carID INT,
-      name VARCHAR(255),
-      description TEXT,
-      price FLOAT,
-      quantityInStock INT,
-      FOREIGN KEY (carID) REFERENCES cars(id)
-    );
-");
+$result = $mysqli->query(file_get_contents(__DIR__ . '/Examples/parts-setup.sql'));
 if($result === false) throw new Exception('Could not execute query.');
 else print("Successfully ran all SQL setup queries.".PHP_EOL);
 
