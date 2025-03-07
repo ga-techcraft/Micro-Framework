@@ -23,10 +23,10 @@ try {
     runSqlQuery($mysqli, __DIR__ . '/comments-setup.sql', 'comments');
     runSqlQuery($mysqli, __DIR__ . '/comment-like-setup.sql', 'comment_like');
     runSqlQuery($mysqli, __DIR__ . '/user-settings-setup.sql', 'user_settings');
-    runSqlQuery($mysqli, __DIR__ . '/tags-setup.sql', 'tags');
-    runSqlQuery($mysqli, __DIR__ . '/post-tag-setup.sql', 'post_tag');
+    runSqlQuery($mysqli, __DIR__ . '/taxonomies-setup.sql', 'taxonomy');
+    runSqlQuery($mysqli, __DIR__ . '/taxonomy-terms-setup.sql', 'taxonomy_tarms');
+    runSqlQuery($mysqli, __DIR__ . '/post-taxonomies-setup.sql', 'post_taxonomies');
     runSqlQuery($mysqli, __DIR__ . '/users-update.sql', 'users_update');
-    runSqlQuery($mysqli, __DIR__ . '/posts-update.sql', 'post_update');
 
 } catch (Exception $e) {
     print "Error: " . $e->getMessage() . PHP_EOL;

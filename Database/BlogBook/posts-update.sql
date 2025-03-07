@@ -1,3 +1,0 @@
-ALTER TABLE posts
-ADD COLUMN categoryID INT NOT NULL,
-ADD CONSTRAINT fk_category FOREIGN KEY (categoryID) REFERENCES categories(id)
