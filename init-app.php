@@ -15,7 +15,8 @@ $opts = getopt('',['migrate']);
 if(isset($opts['migrate'])){
     printf('Database migration enabled.');
     // includeはPHPファイルをインクルードして実行します
-    include('Database/setup.php');
+    // include('Database/Examples/setup.php');
+    include('Database/BlogBook/setup.php');
     printf('Database migration ended.');
 }
 
