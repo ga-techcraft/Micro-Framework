@@ -27,6 +27,7 @@ try {
     runSqlQuery($mysqli, __DIR__ . '/taxonomy-terms-setup.sql', 'taxonomy_tarms');
     runSqlQuery($mysqli, __DIR__ . '/post-taxonomies-setup.sql', 'post_taxonomies');
     runSqlQuery($mysqli, __DIR__ . '/users-update.sql', 'users_update');
+    runSqlQuery($mysqli, __DIR__ . '/caches-setup.sql', 'caches');
 
 } catch (Exception $e) {
     print "Error: " . $e->getMessage() . PHP_EOL;
