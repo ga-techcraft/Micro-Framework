@@ -18,7 +18,18 @@ class CodeGeneration extends AbstractCommand
 
     public function execute(): int
     {
-        $codeGenType = $this->getCommandValue();
+        // 以下でコマンド名を取得する
+        $codeGenType = $this->getCommandValue(); 
+
+        // テンプレートファイルの取得
+        $templete = include(dirname(__FILE__, 1) . "/Templete.php");
+
+        // テンプレートにコマンド名を上書き
+        $newCommandFile = "<?php \n" . sprintf($templete, $codeGenType);
+
+        // 新しいコマンドのファイルの作成と初期データの書き込み
+        file_put_contents(dirname(__FILE__, 1) . "/" . $codeGenType . ".php", $newCommandFile);
+
         $this->log('Generating code for.......' . $codeGenType);
         return 0;
     }
