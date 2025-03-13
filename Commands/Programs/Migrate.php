@@ -160,8 +160,53 @@ class Migrate extends AbstractCommand
         $statement->close();
     }
 
-    private function rollback(int $n = 1): void
-    {
+    private function rollback(int $n = 1): void {
         $this->log("Rolling back {$n} migration(s)...");
+
+        $lastMigration = $this->getLastMigration();
+        $allMigrations = $this->getAllMigrationFiles();
+
+        // ソートされたリストで最後のマイグレーションのインデックスを探します
+        $lastMigrationIndex = array_search($lastMigration, $allMigrations);
+
+        // 最後のマイグレーションが見つかったことを確認します
+        if ($lastMigrationIndex === false) {
+            $this->log("Could not find the last migration ran: " . $lastMigration);
+            return;
+        }
+
+        $count = 0;
+        // 毎回、マイグレーションのダウン関数を実行します。
+        for ($i = $lastMigrationIndex; $count < $n && $i >= 0; $i--) {
+            $filename = $allMigrations[$i];
+
+            $this->log("Rolling back: {$filename}");
+
+            include_once($filename);
+
+            $migrationClass =  $this->getClassnameFromMigrationFilename($filename);
+            $migration = new $migrationClass();
+
+            $queries = $migration->down();
+            if (empty($queries)) throw new \Exception("Must have queries to run for . " . $migrationClass);
+
+            $this->processQueries($queries);
+            $this->removeMigration($filename);
+            $count++;
+        }
+
+        $this->log("Rollback completed.\n");
+    }
+
+    private function removeMigration(string $filename): void {
+        $mysqli = new MySQLWrapper();
+        $statement = $mysqli->prepare("DELETE FROM migrations WHERE filename = ?");
+
+        if (!$statement) throw new \Exception("Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error);
+
+        $statement->bind_param("s", $filename);
+        if (!$statement->execute()) throw new \Exception("Execute failed: (" . $statement->errno . ") " . $statement->error);
+
+        $statement->close();
     }
 }
