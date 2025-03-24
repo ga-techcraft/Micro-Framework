@@ -11,7 +11,6 @@ class DBWipe extends AbstractCommand
 {
     // 使用するコマンド名を設定
     protected static ?string $alias = 'db-wipe';
-    // protected static bool $requiredCommandValue = true;
 
     // 引数を割り当て
     public static function getArguments(): array
@@ -23,8 +22,6 @@ class DBWipe extends AbstractCommand
     {
         // databaseは.envにあるデータベースが指定されるようにする
         $database = Settings::env("DATABASE_NAME");
-
-        // $database = $this->getArgumentValue('db-wipe');
 
         $backup = $this->getArgumentValue('backup');
         
@@ -46,7 +43,7 @@ class DBWipe extends AbstractCommand
       if ($result === false) {
         throw new \Exception("Could not execute query for wiping the $database.");
       } else {
-          print("Successfully ran SQL for wiping the $database".PHP_EOL);
+        $this->log("Successfully ran SQL for wiping the $database".PHP_EOL);
       }
 
       $mysqli->close();
@@ -63,9 +60,9 @@ class DBWipe extends AbstractCommand
       exec($command, $output, $return_status);
 
       if ($return_status === 0) {
-        echo "Backup successful! The dump is saved in $backupFile.";
+        $this->log("Backup successful! The dump is saved in $backupFile.");
       } else {
-        echo "Error occurred during the backup process.";
+        $this->log("Error occurred during the backup process.");
       }
     }
 }

@@ -118,7 +118,6 @@ class CodeGeneration extends AbstractCommand
         $commandContent = $this->getCommandContent($commandName);
 
         // 移行ファイルを保存するパスを指定します
-        // $path = sprintf("%s/../../Database/Migrations/%s", __DIR__,$filename);
         $path = sprintf(dirname(__FILE__) . "/" . $commandName . ".php");
 
         file_put_contents($path, $commandContent);
