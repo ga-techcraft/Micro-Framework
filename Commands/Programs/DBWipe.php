@@ -11,7 +11,7 @@ class DBWipe extends AbstractCommand
 {
     // 使用するコマンド名を設定
     protected static ?string $alias = 'db-wipe';
-    protected static bool $requiredCommandValue = true;
+    // protected static bool $requiredCommandValue = true;
 
     // 引数を割り当て
     public static function getArguments(): array
@@ -21,7 +21,10 @@ class DBWipe extends AbstractCommand
 
     public function execute(): int
     {
-        $database = $this->getArgumentValue('db-wipe');
+        // databaseは.envにあるデータベースが指定されるようにする
+        $database = Settings::env("DATABASE_NAME");
+
+        // $database = $this->getArgumentValue('db-wipe');
 
         $backup = $this->getArgumentValue('backup');
         
