@@ -27,9 +27,11 @@ class CodeGeneration extends AbstractCommand
         if ($codeGenType === 'migration') {
             $migrationName = $this->getArgumentValue('name');
             $this->generateMigrationFile($migrationName);
-        } else if ('command') {
+        } else if ($codeGenType === 'command') {
             $commandName = $this->getArgumentValue('name');
             $this->generateCommandFile($commandName);
+        } else {
+            $this->log("The given type does not exist.");
         }
 
         return 0;
