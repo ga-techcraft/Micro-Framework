@@ -6,4 +6,5 @@ return [
   Commands\Programs\DBWipe::class,
   Commands\Programs\BookSearch::class,
   Commands\Programs\DBRestore::class,
+  Commands\Programs\Seed::class,
 ];
