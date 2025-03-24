@@ -80,10 +80,8 @@ class CodeGeneration extends AbstractCommand
             MIGRATION;
     }
 
-    private function getCommandContent(string $commandName) :string
+    private function getCommandContent(string $commandClassName) :string
     {       
-        $commandName = $this->pascalCase($commandName);
-
         return <<<COMMAND
             <?php
             namespace Commands\Programs;
@@ -91,7 +89,7 @@ class CodeGeneration extends AbstractCommand
             use Commands\AbstractCommand;
             use Commands\Argument;
 
-            class $commandName extends AbstractCommand
+            class $commandClassName extends AbstractCommand
             {
                 // TODO: エイリアスを設定してください。
                 protected static ?string \$alias = '{INSERT COMMAND HERE}';
@@ -113,15 +111,45 @@ class CodeGeneration extends AbstractCommand
 
     private function generateCommandFile(string $commandName): void
     {       
+        // コマンド名がそのままファイル名になる
         $filename = $commandName;
 
-        $commandContent = $this->getCommandContent($commandName);
+        // パスカルケースに変換する
+        $commandClassName = $this->pascalCase($commandName);
+
+        $commandContent = $this->getCommandContent($commandClassName);
 
         // 移行ファイルを保存するパスを指定します
         $path = sprintf(dirname(__FILE__) . "/" . $commandName . ".php");
 
         file_put_contents($path, $commandContent);
+
+        // registry.phpに追加
+        $this->addRegistry($commandClassName);
+
         $this->log("Command file {$filename} has been generated!");
+    }
+
+    private function addRegistry(string $commandClassName): void
+    {
+        // registry.phpからコマンドリストを取得する
+        $registryFilePath = dirname(__DIR__) . '/registry.php';
+        $commandsList = require($registryFilePath);
+
+        // 新しいコマンドを追加する
+        $commandsList[] = "Commands\\Programs\\$commandClassName";
+
+        $newRegistry = var_export($commandsList, true);
+
+        // registry.phpに再びphpコードとして書き写す
+        $registryFileContent = <<<PHP
+        <?php
+
+        return $newRegistry;
+
+        PHP;
+
+        file_put_contents($registryFilePath, $registryFileContent);
     }
 
     private function pascalCase(string $string): string{
