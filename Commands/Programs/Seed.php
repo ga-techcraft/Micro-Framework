@@ -39,6 +39,7 @@ class Seed extends AbstractCommand
                 if (class_exists($className) && is_subclass_of($className, Seeder::class)) {
                     $seeder = new $className(new MySQLWrapper());
                     $seeder->seed();
+                    $this->log("Seeding completed successfully.");
                 }
                 else throw new \Exception('Seeder must be a class that subclasses the seeder interface');
             }
