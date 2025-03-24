@@ -27,6 +27,9 @@ class CodeGeneration extends AbstractCommand
         if ($codeGenType === 'migration') {
             $migrationName = $this->getArgumentValue('name');
             $this->generateMigrationFile($migrationName);
+        } else if ('command') {
+            $commandName = $this->getArgumentValue('name');
+            $this->generateCommandFile($commandName);
         }
 
         return 0;
@@ -75,6 +78,51 @@ class CodeGeneration extends AbstractCommand
                 }
             }
             MIGRATION;
+    }
+
+    private function getCommandContent(string $commandName) :string
+    {       
+        $commandName = $this->pascalCase($commandName);
+
+        return <<<COMMAND
+            <?php
+            namespace Commands\Programs;
+
+            use Commands\AbstractCommand;
+            use Commands\Argument;
+
+            class $commandName extends AbstractCommand
+            {
+                // TODO: エイリアスを設定してください。
+                protected static ?string \$alias = '{INSERT COMMAND HERE}';
+
+                // TODO: 引数を設定してください。
+                public static function getArguments(): array
+                {
+                    return [];
+                }
+
+                // TODO: 実行コードを記述してください。
+                public function execute(): int
+                {
+                    return 0;
+                }
+            }
+            COMMAND;
+    }
+
+    private function generateCommandFile(string $commandName): void
+    {       
+        $filename = $commandName;
+
+        $commandContent = $this->getCommandContent($commandName);
+
+        // 移行ファイルを保存するパスを指定します
+        // $path = sprintf("%s/../../Database/Migrations/%s", __DIR__,$filename);
+        $path = sprintf(dirname(__FILE__) . "/" . $commandName . ".php");
+
+        file_put_contents($path, $commandContent);
+        $this->log("Command file {$filename} has been generated!");
     }
 
     private function pascalCase(string $string): string{
