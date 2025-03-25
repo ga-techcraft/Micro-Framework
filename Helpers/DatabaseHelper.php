@@ -34,4 +34,19 @@ class DatabaseHelper
 
         return $part;
     }
+
+    public static function getComputerPartByType(string $type): array{
+      $db = new MySQLWrapper();
+      
+      $stmt = $db->prepare("SELECT * FROM computer_parts WHERE type = ?");
+      $stmt->bind_param('s', $type);
+      $stmt->execute();
+
+      $result = $stmt->get_result();
+      $part = $result->fetch_all(MYSQLI_ASSOC);
+
+      if (!$part) throw new Exception('Could not find a single part in database');
+
+      return $part;
+    }
 }

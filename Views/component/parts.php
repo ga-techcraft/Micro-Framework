@@ -1,34 +1,4 @@
-<?php
-use Database\MySQLWrapper;
-
-// URLクエリパラメータを通じてIDが提供されたかどうかをチェックします。
-$id = $_GET['id'] ?? null;
-if (!$id) {
-    die("No ID provided for part lookup.");
-}
-
-// データベース接続を初期化します。
-$db = new MySQLWrapper();
-
-try {
-    // IDで部品を取得するステートメントを準備します。
-    $stmt = $db->prepare("SELECT * FROM computer_parts WHERE id = ?");
-    // i' は整数であることを示します。
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
-
-    $result = $stmt->get_result();
-    $part = $result->fetch_assoc();
-} catch (Exception $e) {
-    die("Error fetching part by ID: " . $e->getMessage());
-}
-
-if (!$part) {
-    print("No part found with ID: $id");
-    exit;
-}
-
-?>
+<?php foreach ($parts as $part): ?>
 <div class="card" style="width: 18rem;">
     <div class="card-body">
         <h5 class="card-title"><?= htmlspecialchars($part['name']) ?></h5>
@@ -47,3 +17,5 @@ if (!$part) {
         <p class="card-text"><small class="text-muted">Last updated on <?= htmlspecialchars($part['updated_at']) ?></small></p>
     </div>
 </div>
+
+<?php endforeach; ?>

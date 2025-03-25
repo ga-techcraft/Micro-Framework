@@ -1,28 +1,3 @@
-<?php
-use Database\MySQLWrapper;
-
-// データベース接続を開始します
-$db = new MySQLWrapper();
-
-try {
-    // ユーザー入力が関与しないため、SQLインジェクションを防ぐ必要はありません。
-    // $db->query() を使用することもできますが、一貫性のために prepare を使用します。
-    $stmt = $db->prepare("SELECT * FROM computer_parts ORDER BY RAND() LIMIT 1");
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $part = $result->fetch_assoc();
-} catch (Exception $e) {
-    die("Error fetching random part: " . $e->getMessage());
-}
-
-if (!$part) {
-    echo "No part found!";
-    exit;
-}
-
-// 部品をBootstrapカードに表示します。
-// htmlspecialcharsは、特殊文字（例えば、HTMLタグで使用される '<' や '>' などの文字）をテキストとしてレンダリングするためによく使用されます。
-?>
 <div class="card" style="width: 18rem;">
     <div class="card-body">
         <h5 class="card-title"><?= htmlspecialchars($part['name']) ?></h5>
