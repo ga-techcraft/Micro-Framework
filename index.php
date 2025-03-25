@@ -10,6 +10,10 @@ spl_autoload_register(function($class) {
 
 $DEBUG = true;
 
+if (preg_match('/\.(?:png|jpg|jpeg|gif|js|css|html)$/', $_SERVER["REQUEST_URI"])) {
+  return false;
+}
+
 // ルートを読み込みます。
 $routes = include('Routing/routes.php');
 
