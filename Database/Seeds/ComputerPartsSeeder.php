@@ -71,7 +71,7 @@ class ComputerPartsSeeder extends AbstractSeeder {
       $rows = [];
 
       for ($i = 0; $i < 1000; $i++) {
-        $row[] = [
+        $rows[] = [
           $faker->name(), // name
           $faker->randomElement(['CPU', 'GPU', 'SSD', 'RAM']), // type
           $faker->company(), // brand
@@ -89,7 +89,7 @@ class ComputerPartsSeeder extends AbstractSeeder {
         ];
       }
 
-      return $row;
+      return $rows;
 
     }
 }
