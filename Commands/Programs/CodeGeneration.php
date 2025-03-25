@@ -176,10 +176,10 @@ class CodeGeneration extends AbstractCommand
 
         use Database\AbstractSeeder;
 
-        class TemplateSeeder extends AbstractSeeder {
+        class $seedName extends AbstractSeeder {
 
             // TODO: tableName文字列を割り当ててください。
-            protected ?string \$tableName = '$seedName';
+            protected ?string \$tableName = null;
 
             // TODO: tableColumns配列を割り当ててください。
             protected array \$tableColumns = [];
