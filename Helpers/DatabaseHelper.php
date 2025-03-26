@@ -35,18 +35,34 @@ class DatabaseHelper
         return $part;
     }
 
-    public static function getComputerPartByType(string $type): array{
+    public static function getComputerPartByType(string $type, int $limit, int $offset): array{
       $db = new MySQLWrapper();
       
-      $stmt = $db->prepare("SELECT * FROM computer_parts WHERE type = ?");
+      $stmt = $db->prepare("SELECT * FROM computer_parts WHERE type = ? LIMIT ? OFFSET ?");
+      $stmt->bind_param('sii', $type, $limit, $offset);
+      $stmt->execute();
+
+      $result = $stmt->get_result();
+      $parts = $result->fetch_all(MYSQLI_ASSOC);
+
+      if (!$parts) throw new Exception('Could not find a single part in database');
+
+      return $parts;
+    }
+
+    public static function getCountComputerPartByType(string $type): int{
+      $db = new MySQLWrapper();
+
+      $stmt = $db->prepare("SELECT COUNT(*) as count FROM computer_parts WHERE type = ?");
       $stmt->bind_param('s', $type);
       $stmt->execute();
 
       $result = $stmt->get_result();
-      $part = $result->fetch_all(MYSQLI_ASSOC);
+      $count = $result->fetch_assoc()['count'];
 
-      if (!$part) throw new Exception('Could not find a single part in database');
+      if (!$count) throw new Exception('Could not find the computer part count in database');
 
-      return $part;
+      return $count;
+      return 0;
     }
 }

@@ -39,10 +39,20 @@ return [
         $part = DatabaseHelper::getComputerPartById($id);
         return new JSONRenderer(['part'=>$part]);
     },
-    'types'=>function(): HTTPRenderer{
+    'types' =>function(): HTMLRenderer{
+      return new HTMLRenderer('component/parts');
+    },
+    'api/types'=>function(){
+      $limit = 10; // 最大表示数
+      $page = (int)$_GET['page']??1; 
       $type = $_GET['type']??null;
-      $parts = DatabaseHelper::getComputerPartByType($type);
-      return new HTMLRenderer('component/parts', ['parts'=>$parts]);
+      $offset = ($page - 1) * $limit; // 取得するデータの開始位置
+      $parts = DatabaseHelper::getComputerPartByType($type, $limit, $offset);
+
+      $total = DatabaseHelper::getCountComputerPartByType($type); // レコード数
+      $totalPages = ceil($total / $limit);
+
+      return new JSONRenderer(['page'=>$page, 'parts'=>$parts, 'totalPages'=>$totalPages]);
     },
     'update/part' => function(): HTMLRenderer {
       $part = null;
