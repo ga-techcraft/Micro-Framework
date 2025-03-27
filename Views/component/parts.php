@@ -107,7 +107,7 @@
     }
 
     function loadParts(page = 1) {
-        fetch(`api/types?type=CPU&page=${page}`)
+        fetch(`/api/types?type=CPU&page=${page}`)
             .then(res => res.json())
             .then(data => {
                 const list = document.getElementById("parts-list");

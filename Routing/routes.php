@@ -54,6 +54,15 @@ return [
 
       return new JSONRenderer(['page'=>$page, 'parts'=>$parts, 'totalPages'=>$totalPages]);
     },
+    'random/computer'=>function(){
+        return new HTMLRenderer('component/random-create');
+    },
+    'api/random/computer'=>function(){
+        $total = DatabaseHelper::getCountComputerPart();
+        $randomId = rand(1, $total);
+        $part = DatabaseHelper::getComputerPartById($randomId);
+        return new JSONRenderer(['part'=>$part]);
+    },
     'update/part' => function(): HTMLRenderer {
       $part = null;
       $partDao = new ComputerPartDAOImpl();
@@ -118,3 +127,5 @@ return [
         }
     },
 ];
+
+

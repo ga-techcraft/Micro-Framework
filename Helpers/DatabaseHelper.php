@@ -65,4 +65,16 @@ class DatabaseHelper
       return $count;
       return 0;
     }
+
+    public static function getCountComputerPart(): int{
+      $db = new MySQLWrapper();
+
+      $stmt = $db->prepare("SELECT COUNT(*) as count FROM computer_parts");
+      $stmt->execute();
+
+      $result = $stmt->get_result();
+      $count = $result->fetch_assoc()['count'];
+
+      return $count;
+    }
 }
