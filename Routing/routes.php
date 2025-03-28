@@ -39,6 +39,14 @@ return [
         $part = DatabaseHelper::getComputerPartById($id);
         return new JSONRenderer(['part'=>$part]);
     },
+    'parts/newest'=>function(): HTMLRenderer{
+        return new HTMLRenderer('component/parts-newest');
+    },
+    'api/parts/newest'=>function(){
+        // データベースから最新のパーツを取得して、それを返す
+        $part = DatabaseHelper::getNewestComputerPart();
+        return new JSONRenderer(['part'=>$part]);
+    },
     'types' =>function(): HTMLRenderer{
       return new HTMLRenderer('component/parts');
     },

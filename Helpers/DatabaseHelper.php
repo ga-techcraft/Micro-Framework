@@ -77,4 +77,12 @@ class DatabaseHelper
 
       return $count;
     }
+
+    public static function getNewestComputerPart(): array{
+      $db = new MySQLWrapper();
+
+      $result = $db->query("SELECT * FROM computer_parts ORDER BY created_at DESC LIMIT 1");
+      
+      return $result->fetch_assoc();
+    }
 }
