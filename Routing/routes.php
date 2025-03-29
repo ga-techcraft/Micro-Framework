@@ -65,6 +65,13 @@ return [
     'random/computer'=>function(){
         return new HTMLRenderer('component/random-create');
     },
+    'api/top-performance'=>function(){
+        $parts = DatabaseHelper::getTopPerformanceComputerPart();
+        return new JSONRenderer(['parts'=>$parts]);
+    },
+    'top-performance'=>function(): HTMLRenderer{
+        return new HTMLRenderer('component/top-performance');
+    },
     'api/random/computer'=>function(){
         $total = DatabaseHelper::getCountComputerPart();
         $randomId = rand(1, $total);

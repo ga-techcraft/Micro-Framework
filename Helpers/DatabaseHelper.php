@@ -85,4 +85,12 @@ class DatabaseHelper
       
       return $result->fetch_assoc();
     }
+
+    public static function getTopPerformanceComputerPart(): array{
+      $db = new MySQLWrapper();
+
+      $result = $db->query("SELECT * FROM computer_parts ORDER BY performance_score DESC LIMIT 50");
+      
+      return $result->fetch_all(MYSQLI_ASSOC);
+    }
 }
