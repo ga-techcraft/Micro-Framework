@@ -7,12 +7,12 @@ use Helpers\ValidationHelper;
 use Response\HTTPRenderer;
 use Response\Render\HTMLRenderer;
 use Response\Render\JSONRenderer;
-use Database\DataAccess\Implementations\ComputerPartDAOImpl;
+use Database\DataAccess\DAOFactory;
 use Types\ValueType;
 
 return [
       'random/part'=>function(): HTTPRenderer{
-        $partDao = new ComputerPartDAOImpl();
+        $partDao = DAOFactory::getComputerPartDAO();
         $part = $partDao->getRandom();
 
         if($part === null) throw new Exception('No parts are available!');
@@ -23,7 +23,7 @@ return [
         // IDの検証
         $id = ValidationHelper::integer($_GET['id']??null);
 
-        $partDao = new ComputerPartDAOImpl();
+        $partDao = DAOFactory::getComputerPartDAO();
         $part = $partDao->getById($id);
 
         if($part === null) throw new Exception('Specified part was not found!');
@@ -80,7 +80,7 @@ return [
     },
     'update/part' => function(): HTMLRenderer {
       $part = null;
-      $partDao = new ComputerPartDAOImpl();
+      $partDao = DAOFactory::getComputerPartDAO();
       if(isset($_GET['id'])){
           $id = ValidationHelper::integer($_GET['id']);
           $part = $partDao->getById($id);
@@ -111,7 +111,7 @@ return [
                 'lifespan' => ValueType::INT,
             ];
 
-            $partDao = new ComputerPartDAOImpl();
+            $partDao = DAOFactory::getComputerPartDAO();
 
             // 入力に対する単純なバリデーション。実際のシナリオでは、要件を満たす完全なバリデーションが必要になることがあります。
             $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
