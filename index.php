@@ -1,4 +1,7 @@
 <?php
+session_start();
+// setcookie(session_name(), "", time() - 3600); 
+
 header("Access-Control-Allow-Origin: *"); // 開発用、何でも許可
 
 spl_autoload_extensions(".php");

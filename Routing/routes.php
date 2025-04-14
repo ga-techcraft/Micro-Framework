@@ -3,12 +3,16 @@
 use Dom\HTMLElement;
 use Helpers\DatabaseHelper;
 use Models\ComputerPart;
+use Helpers\Authenticate;
+use Models\User;
 use Helpers\ValidationHelper;
 use Response\HTTPRenderer;
 use Response\Render\HTMLRenderer;
 use Response\Render\JSONRenderer;
+use Response\Render\RedirectRenderer;
 use Database\DataAccess\DAOFactory;
 use Types\ValueType;
+use Response\FlashData;
 
 return [
       'random/part'=>function(): HTTPRenderer{
@@ -141,6 +145,84 @@ return [
             return new JSONRenderer(['status' => 'error', 'message' => 'An error occurred.']);
         }
     },
+    'register'=>function(): HTTPRenderer{
+        return new HTMLRenderer('page/register');
+    },
+    'form/register' => function(): HTTPRenderer {
+        // ユーザが現在ログインしている場合、登録ページにアクセスすることはできません。
+        if(Authenticate::isLoggedIn()){
+            FlashData::setFlashData('error', 'Cannot register as you are already logged in.');
+            return new RedirectRenderer('random/part');
+        }
+
+        try {
+            // リクエストメソッドがPOSTかどうかをチェックします
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
+
+            $required_fields = [
+                'username' => ValueType::STRING,
+                'email' => ValueType::STRING,
+                'password' => ValueType::STRING,
+                'confirm_password' => ValueType::STRING,
+                'company' => ValueType::STRING,
+            ];
+
+            $userDao = DAOFactory::getUserDAO();
+
+            // シンプルな検証
+            $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+
+            if($validatedData['confirm_password'] !== $validatedData['password']){
+                FlashData::setFlashData('error', 'Invalid Password!');
+                return new RedirectRenderer('register');
+            }
+
+            // Eメールは一意でなければならないので、Eメールがすでに使用されていないか確認します
+            if($userDao->getByEmail($validatedData['email'])){
+                FlashData::setFlashData('error', 'Email is already in use!');
+                return new RedirectRenderer('register');
+            }
+
+            // 新しいUserオブジェクトを作成します
+            $user = new User(
+                username: $validatedData['username'],
+                email: $validatedData['email'],
+                company: $validatedData['company']
+            );
+
+            // データベースにユーザーを作成しようとします
+            $success = $userDao->create($user, $validatedData['password']);
+
+            if (!$success) throw new Exception('Failed to create new user!');
+
+            // ユーザーログイン
+            Authenticate::loginAsUser($user);
+
+            FlashData::setFlashData('success', 'Account successfully created.');
+            return new RedirectRenderer('random/part');
+        } catch (\InvalidArgumentException $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'Invalid Data.');
+            return new RedirectRenderer('register');
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'An error occurred.');
+            return new RedirectRenderer('register');
+        }
+    },
+    'logout'=>function(): HTTPRenderer{
+        if(!Authenticate::isLoggedIn()){
+            FlashData::setFlashData('error', 'Already logged out.');
+            return new RedirectRenderer('random/part');
+        }
+
+        Authenticate::logoutUser();
+        FlashData::setFlashData('success', 'Logged out.');
+        return new RedirectRenderer('random/part');
+    },
+
 ];
 
 
