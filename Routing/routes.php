@@ -13,6 +13,7 @@ use Response\Render\RedirectRenderer;
 use Database\DataAccess\DAOFactory;
 use Types\ValueType;
 use Response\FlashData;
+use Exceptions\AuthenticationFailureException;
 
 return [
       'random/part'=>function(): HTTPRenderer{
@@ -222,7 +223,51 @@ return [
         FlashData::setFlashData('success', 'Logged out.');
         return new RedirectRenderer('random/part');
     },
+    'login'=>function(): HTTPRenderer{
+        if(Authenticate::isLoggedIn()){
+            FlashData::setFlashData('error', 'You are already logged in.');
+            return new RedirectRenderer('random/part');
+        }
 
+        return new HTMLRenderer('page/login');
+    },
+    'form/login'=>function(): HTTPRenderer{
+        if(Authenticate::isLoggedIn()){
+            FlashData::setFlashData('error', 'You are already logged in.');
+            return new RedirectRenderer('random/part');
+        }
+
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
+
+            $required_fields = [
+                'email' => ValueType::STRING,
+                'password' => ValueType::STRING,
+            ];
+
+            $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+
+            Authenticate::authenticate($validatedData['email'], $validatedData['password']);
+
+            FlashData::setFlashData('success', 'Logged in successfully.');
+            return new RedirectRenderer('update/part');
+        } catch (AuthenticationFailureException $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'Failed to login, wrong email and/or password.');
+            return new RedirectRenderer('login');
+        } catch (\InvalidArgumentException $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'Invalid Data.');
+            return new RedirectRenderer('login');
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'An error occurred.');
+            return new RedirectRenderer('login');
+        }
+    },
 ];
 
 
