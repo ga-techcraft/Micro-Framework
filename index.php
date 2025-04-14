@@ -1,9 +1,7 @@
 <?php
-session_start();
-// setcookie(session_name(), "", time() - 3600); 
-
 header("Access-Control-Allow-Origin: *"); // 開発用、何でも許可
 
+set_include_path(get_include_path() . PATH_SEPARATOR . realpath(__DIR__ . '/..'));
 spl_autoload_extensions(".php");
 spl_autoload_register(function($class) {
     $file = __DIR__ . '/'  . str_replace('\\', '/', $class). '.php';
@@ -26,8 +24,13 @@ $path = ltrim($path, '/');
 
 // ルートにパスが存在するかチェックする
 if (isset($routes[$path])) {
-    // コールバックを呼び出してrendererを作成します。
-    $renderer = $routes[$path]();
+    // 現在のルートを取得します
+    $middlewareRegister = include('Middleware/middleware-register.php');
+    $middlewares = $middlewareRegister['global'];
+    $middlewareHandler = new \Middleware\MiddlewareHandler(array_map(fn($middlewareClass) => new $middlewareClass(), $middlewares));
+
+    // チェーンの最後のcallableは、HTTPRendererを返す現在の$route callableとなります
+    $renderer = $middlewareHandler->run($routes[$path]);
 
     try{
         // ヘッダーを設定します。

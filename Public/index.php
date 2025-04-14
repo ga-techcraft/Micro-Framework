@@ -13,29 +13,34 @@ if (preg_match('/\.(?:png|jpg|jpeg|gif|js|css|html)$/', $_SERVER["REQUEST_URI"])
     return false;
 }
 
-// ルートを読み込みます
+// ルートをロードします
 $routes = include('Routing/routes.php');
 
-// リクエストURIからパスだけを解析して取得します
+// リクエストURIを解析してパスだけを取得します
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $path = ltrim($path, '/');
 
-// パスがルートに存在するかチェックします
+// ルートにパスが存在するかチェックします
 if (isset($routes[$path])) {
-    // レンダラーを作成するコールバックを呼び出します
-    $renderer = $routes[$path]();
+    // 現在のルートを取得します
+    $middlewareRegister = include('Middleware/middleware-register.php');
+    $middlewares = $middlewareRegister['global'];
+    $middlewareHandler = new \Middleware\MiddlewareHandler(array_map(fn($middlewareClass) => new $middlewareClass(), $middlewares));
+
+    // チェーンの最後のcallableは、HTTPRendererを返す現在の$route callableとなります
+    $renderer = $middlewareHandler->run($routes[$path]);
 
     try{
-        // ヘッダーを設定します
+        // ヘッダーの設定
         foreach ($renderer->getFields() as $name => $value) {
-            // ヘッダーに対して単純なバリデーションを実行します
+            // ヘッダーに対する単純な検証を実行します
             $sanitized_value = filter_var($value, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
 
             if ($sanitized_value && $sanitized_value === $value) {
                 header("{$name}: {$sanitized_value}");
             } else {
-                // ヘッダーの設定が失敗した場合のログを取るか、または処理します
-                // エラー処理に応じて、例外を投げるか、またはデフォルトで続行するかもしれません
+                // ヘッダー設定に失敗した場合のログまたは処理
+                // エラー処理によっては、例外をスローするか、デフォルトのまま続行することもできます
                 http_response_code(500);
                 if($DEBUG) print("Failed setting header - original: '$value', sanitized: '$sanitized_value'");
                 exit;
@@ -50,7 +55,7 @@ if (isset($routes[$path])) {
         if($DEBUG) print($e->getMessage());
     }
 } else {
-    // ルートが一致しない場合は、404エラーを表示します
+    // 一致するルートがない場合、404エラーを表示します
     http_response_code(404);
     echo "404 Not Found: The requested route was not found on this server.";
 }

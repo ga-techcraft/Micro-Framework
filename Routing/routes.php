@@ -83,7 +83,12 @@ return [
         $part = DatabaseHelper::getComputerPartById($randomId);
         return new JSONRenderer(['part'=>$part]);
     },
-    'update/part' => function(): HTMLRenderer {
+    'update/part' => function(): HTTPRenderer {
+      if(!Authenticate::isLoggedIn()){
+          FlashData::setFlashData('error', 'Permission Denied.');
+          return new RedirectRenderer('random/part');
+      }
+
       $part = null;
       $partDao = DAOFactory::getComputerPartDAO();
       if(isset($_GET['id'])){
@@ -93,6 +98,11 @@ return [
       return new HTMLRenderer('component/update-computer-part',['part'=>$part]);
     },
     'form/update/part' => function(): HTTPRenderer {
+        if(!Authenticate::isLoggedIn()){
+            FlashData::setFlashData('error', 'Permission Denied.');
+            return new RedirectRenderer('random/part');
+        }
+
         try {
             // リクエストメソッドがPOSTかどうかをチェックします
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
