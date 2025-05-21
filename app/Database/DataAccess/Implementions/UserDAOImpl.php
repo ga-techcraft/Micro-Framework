@@ -59,7 +59,7 @@ class UserDAOImpl implements UserDAO
 
     private function rawDataToUser(array $rawData): User{
         return new User(
-            username: $rawData['username'],
+            username: $rawData['name'],
             email: $rawData['email'],
             id: $rawData['id'],
             timeStamp: new DataTimeStamp($rawData['created_at'], $rawData['updated_at'])

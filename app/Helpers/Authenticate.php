@@ -30,7 +30,7 @@ class Authenticate
 
     private static function retrieveAuthenticatedUser(): void{
         if(!isset($_SESSION[self::USER_ID_SESSION_KEY])) return;
-        $userDao = DAOFactory::getUserDAO();
+        $userDao = DAOFactory::getUserDAOImpl();
         self::$authenticatedUser = $userDao->getById($_SESSION[self::USER_ID_SESSION_KEY]);
     }
 
@@ -43,4 +43,22 @@ class Authenticate
         self::retrieveAuthenticatedUser();
         return self::$authenticatedUser;
     }
+
+
+    public static function authenticate(string $email, string $password): User{
+      $userDAOImpl = DAOFactory::getUserDAOImpl();
+      self::$authenticatedUser = $userDAOImpl->getByEmail($email);
+
+      // ユーザーが見つからない場合はnullを返します
+      if (self::$authenticatedUser === null) throw new \Exception("Could not retrieve user by specified email %s " . $email);
+
+      // データベースからハッシュ化されたパスワードを取得します
+      $hashedPassword = $userDAOImpl->getHashedPasswordById(self::$authenticatedUser->getId());
+
+      if (password_verify($password, $hashedPassword)){
+          self::loginAsUser(self::$authenticatedUser);
+          return self::$authenticatedUser;
+      }
+      else throw new \Exception("Invalid password.");
+  }
 }

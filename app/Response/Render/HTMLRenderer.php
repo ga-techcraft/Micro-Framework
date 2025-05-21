@@ -4,6 +4,7 @@ namespace Response\Render;
 
 use Response\HTTPRenderer;
 use Exception;
+use Helpers\Authenticate;
 
 class HTMLRenderer implements HTTPRenderer{
     private string $view;
@@ -22,7 +23,7 @@ class HTMLRenderer implements HTTPRenderer{
 
     public function getContent(): string{
         // $this->viewからviewのパスを取得する
-        $viewPath = $this->getViewPath('component/' . $this->view);
+        $viewPath = $this->getViewPath($this->view);
 
         if(!file_exists($viewPath)){
             throw new Exception("View not found: " . $viewPath);
@@ -37,13 +38,15 @@ class HTMLRenderer implements HTTPRenderer{
         return $this->getHeader() . $content . $this->getFooter();
     }
 
-    public function getViewPath(string $view): string{
+    public function getViewPath($view): string{
         return __DIR__ . '/../../Views/' . $view . '.php';
     }
 
     public function getHeader(): string{
         ob_start();
+        $user = Authenticate::getAuthenticatedUser();
         include $this->getViewPath('layout/header');
+        include $this->getViewPath('component/navigator');
         include $this->getViewPath('component/message-boxes');
         return ob_get_clean();
     }

@@ -2,6 +2,7 @@
 
 namespace Routing;
 
+use Response\HTTPRenderer;
 use Response\Render\HTMLRenderer;
 use Response\Render\JSONRenderer;
 use Response\Render\BinaryRenderer;
@@ -14,13 +15,15 @@ use Database\DataAccess\DAOFactory;
 use Helpers\Authenticate;
 use Models\User;
 use Response\FlashData;
+use Exception;
+
 
 return [
   '' => function (): HTMLRenderer {
-    return new HTMLRenderer('file_upload', []);
+    return new HTMLRenderer('component/file_upload', []);
   },
   'register' => function (): HTMLRenderer {
-    return new HTMLRenderer('register', []);
+    return new HTMLRenderer('component/register', []);
   },
   'form/register' => function (): RedirectRenderer {
     if (Authenticate::isLoggedIn()) {
@@ -39,7 +42,7 @@ return [
           'confirm_password' => ValueType::PASSWORD,
       ];
 
-      $userDao = DAOFactory::getUserDAO();
+      $userDaoImpl = DAOFactory::getUserDAOImpl();
 
       // シンプルな検証
       $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
@@ -50,7 +53,7 @@ return [
       }
 
       // Eメールは一意でなければならないので、Eメールがすでに使用されていないか確認します
-      if($userDao->getByEmail($validatedData['email'])){
+      if($userDaoImpl->getByEmail($validatedData['email'])){
           FlashData::setFlashData('error', 'Email is already in use!');
           return new RedirectRenderer('register');
       }
@@ -62,7 +65,7 @@ return [
       );
 
       // データベースにユーザーを作成しようとします
-      $success = $userDao->create($user, $validatedData['password']);
+      $success = $userDaoImpl->create($user, $validatedData['password']);
 
       if (!$success) throw new Exception('Failed to create new user!');
 
@@ -75,16 +78,67 @@ return [
       error_log($e->getMessage());
 
       FlashData::setFlashData('error', 'Invalid Data.');
-      return new RedirectRenderer('register');
+      return new RedirectRenderer('component/register');
   } catch (Exception $e) {
       error_log($e->getMessage());
 
       FlashData::setFlashData('error', 'An error occurred.');
-      return new RedirectRenderer('register');
+      return new RedirectRenderer('component/register');
   }
 
     return new RedirectRenderer('/');
   },
+  'login' => function (): HTTPRenderer {
+    if(Authenticate::isLoggedIn()) {
+      FlashData::setFlashData('error', 'You are already logged in.');
+      return new RedirectRenderer('');
+    }
+    return new HTMLRenderer('component/login', []);
+  },
+  'form/login'=>function(): HTTPRenderer{
+    if(Authenticate::isLoggedIn()){
+        FlashData::setFlashData('error', 'You are already logged in.');
+        return new RedirectRenderer('random/part');
+    }
+
+    try {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
+
+        $required_fields = [
+            'email' => ValueType::EMAIL,
+            'password' => ValueType::STRING,
+        ];
+
+        $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+
+        Authenticate::authenticate($validatedData['email'], $validatedData['password']);
+
+        FlashData::setFlashData('success', 'Logged in successfully.');
+        return new RedirectRenderer('');
+    } catch (\Exception $e) {
+        error_log($e->getMessage());
+
+        FlashData::setFlashData('error', 'Failed to login, wrong email and/or password.');
+        return new RedirectRenderer('login');
+    } catch (\InvalidArgumentException $e) {
+        error_log($e->getMessage());
+
+        FlashData::setFlashData('error', 'Invalid Data.');
+        return new RedirectRenderer('login');
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+
+        FlashData::setFlashData('error', 'An error occurred.');
+        return new RedirectRenderer('login');
+    }
+},
+
+  'logout' => function (): RedirectRenderer {
+    Authenticate::logoutUser();
+    FlashData::setFlashData('success', 'Logged out successfully.');
+    return new RedirectRenderer('');
+},
+
   // 画像アップロード
   'api/images/upload' => function (): JSONRenderer {
     try {
@@ -145,7 +199,7 @@ return [
         'uniqueString' => ValueType::STRING,
       ], $_GET);
     } catch (\Exception $e) {
-      return new HTMLRenderer('result', [
+      return new HTMLRenderer('component/result', [
         'result' => $e->getMessage(),
       ]);
     }
@@ -155,7 +209,7 @@ return [
     $image = $ImageDAOImpl->getByUniqueString($uniqueString);
     
     if($image === null){
-      return new HTMLRenderer('result', [
+      return new HTMLRenderer('component/result', [
         'result' => 'Image not found',
       ]);
     } else {
@@ -165,7 +219,7 @@ return [
       // 画像ファイルをディレクトリから削除
       unlink(__DIR__ . '/../storage/images/' . $uniqueString);
 
-      return new HTMLRenderer('result', [
+      return new HTMLRenderer('component/result', [
         'result' => 'Image deleted',
       ]);
     }

@@ -29,7 +29,7 @@ class DAOFactory{
         // throw new \Exception('Invalid database driver');
     }
 
-    public static function getUserDAO(): UserDAO{
+    public static function getUserDAOImpl(): UserDAO{
         $driver = Settings::readEnvInfo('DATABASE_DRIVER');
 
         return match($driver){
