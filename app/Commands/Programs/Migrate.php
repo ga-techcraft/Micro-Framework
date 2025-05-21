@@ -14,7 +14,7 @@ class Migrate extends AbstractCommand{
     public static function getArguments(): array{
         return [
             (new Argument('init'))->required(false)->argumentValueRequired(false),
-            (new Argument('rollback'))->required(false)->argumentValueRequired(false),
+            (new Argument('rollback'))->required(false)->argumentValueRequired(true),
         ];
     }
 
@@ -114,13 +114,15 @@ class Migrate extends AbstractCommand{
         $stmt->close();
     }
 
-    private function rollback(){
+    private function rollback(int $n = 1){
         $lastMigration = $this->getLastMigration();
         if($lastMigration === null) throw new Exception("No migrations found");
         $allMigrationFiles = $this->getAllMigrationFiles('desc');
         $currentIndex = array_search($lastMigration, $allMigrationFiles);
 
-        for ($i = $currentIndex; $i < count($allMigrationFiles); $i++) {
+        $count = 0;
+
+        for ($i = $currentIndex; $i >= 0 && $count < $n; $i--) {
             $filename = $allMigrationFiles[$i];
             include_once($filename);
             $migrationClass = $this->getClassnameFromMigrationFilename($filename);

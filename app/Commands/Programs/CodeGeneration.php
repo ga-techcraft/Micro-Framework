@@ -75,6 +75,7 @@ class CodeGeneration extends AbstractCommand{
 
     class $name extends AbstractCommand{
         public static bool \$isRequiredCommandValue = true; // デフォルト値はfalse
+        public static bool \$isRequiredArgumentValue = false; // デフォルト値はtrue
         protected static string \$alias = '$name';
 
         public static function getArguments(): array{

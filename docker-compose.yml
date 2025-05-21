@@ -31,9 +31,9 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: image_hosting
-      MYSQL_USER: image_hosting_user
-      MYSQL_PASSWORD: image_hosting_pass
+      MYSQL_DATABASE: micro
+      MYSQL_USER: micro_user
+      MYSQL_PASSWORD: micro_pass
     ports:
       - "3306:3306"
     volumes:

@@ -39,6 +39,9 @@ abstract class AbstractCommand implements Command{
             } else if ($arg[0] == '-') {
                 $key = substr($arg, 1);
                 $shellArgs[$key] = true;
+                if (isset($args[$i + 1]) && $args[$i + 1][0] != '-') {
+                    throw new Exception("Option value is not allowed.");
+                }
             } else {
                 throw new Exception("Options must start with - or --");
             }
