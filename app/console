@@ -1,0 +1,31 @@
+<?php
+
+spl_autoload_extensions(".php");
+spl_autoload_register(function($class) {
+    $file = __DIR__ . '/'  . str_replace('\\', '/', $class). '.php';
+    if (file_exists(stream_resolve_include_path($file))) include($file);
+});
+require_once __DIR__ . '/vendor/autoload.php';
+
+// コマンドを取得
+$inputCommand = $argv[1];
+
+$commands = include __DIR__ . "/Commands/registry.php";
+
+// コマンドを実行
+foreach ($commands as $command) {
+  try {
+    $alias = $command::getAlias();
+    if($inputCommand === $alias){
+        $command = new $command();
+        $command->execute();
+        exit(0);
+    }
+  } catch (Exception $e) {
+    fwrite(STDOUT, $e->getMessage());
+    exit(1);
+  }
+}
+
+fwrite(STDOUT, "Failed to run any commands\n");
+exit(1);
