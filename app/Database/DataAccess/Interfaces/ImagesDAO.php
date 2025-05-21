@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Interfaces;
+namespace Database\DataAccess\Interfaces;
 
 use Models\Images;
 

@@ -22,7 +22,7 @@ class HTMLRenderer implements HTTPRenderer{
 
     public function getContent(): string{
         // $this->viewからviewのパスを取得する
-        $viewPath = $this->getViewPath();
+        $viewPath = $this->getViewPath('component/' . $this->view);
 
         if(!file_exists($viewPath)){
             throw new Exception("View not found: " . $viewPath);
@@ -37,13 +37,14 @@ class HTMLRenderer implements HTTPRenderer{
         return $this->getHeader() . $content . $this->getFooter();
     }
 
-    public function getViewPath(): string{
-        return __DIR__ . '/../../Views/component/' . $this->view . '.php';
+    public function getViewPath(string $view): string{
+        return __DIR__ . '/../../Views/' . $view . '.php';
     }
 
     public function getHeader(): string{
         ob_start();
-        include __DIR__ . '/../../Views/layout/header.php';
+        include $this->getViewPath('layout/header');
+        include $this->getViewPath('component/message-boxes');
         return ob_get_clean();
     }
 

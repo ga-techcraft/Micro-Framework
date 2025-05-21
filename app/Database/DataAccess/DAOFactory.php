@@ -2,11 +2,13 @@
 
 namespace Database\DataAccess;
 
-use Database\Interfaces\ImagesDAO;
+use Database\DataAccess\Interfaces\ImagesDAO;
+use Database\DataAccess\Interfaces\UserDAO;
 use Helpers\Settings;
 
 use Database\DataAccess\Implementions\ImagesDAOMySQLImpl;
 use Database\DataAccess\Implementions\ImagesDAOMemcachedImpl;
+use Database\DataAccess\Implementions\UserDAOImpl;
 
 class DAOFactory{
     public static function getImagesDAO(): ImagesDAO{
@@ -25,5 +27,14 @@ class DAOFactory{
         //     return new ImagesDAOMemcachedImpl();
         // }
         // throw new \Exception('Invalid database driver');
+    }
+
+    public static function getUserDAO(): UserDAO{
+        $driver = Settings::readEnvInfo('DATABASE_DRIVER');
+
+        return match($driver){
+            'mysql' => new UserDAOImpl(),
+            default => throw new \Exception('Invalid database driver'),
+        };
     }
 }

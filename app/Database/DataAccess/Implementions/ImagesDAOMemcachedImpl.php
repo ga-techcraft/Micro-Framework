@@ -2,7 +2,7 @@
 
 namespace Database\DataAccess\Implementions;
 
-use Database\Interfaces\ImagesDAO;
+use Database\DataAccess\Interfaces\ImagesDAO;
 use Database\DatabaseManager;
 use Models\Images;
 

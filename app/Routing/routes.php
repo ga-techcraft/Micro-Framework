@@ -5,16 +5,85 @@ namespace Routing;
 use Response\Render\HTMLRenderer;
 use Response\Render\JSONRenderer;
 use Response\Render\BinaryRenderer;
+use Response\Render\RedirectRenderer;
 
 use Models\ORM\Image;
 use Helpers\ValidationHelper;
 use Types\ValueType;
 use Database\DataAccess\DAOFactory;
-
+use Helpers\Authenticate;
+use Models\User;
+use Response\FlashData;
 
 return [
   '' => function (): HTMLRenderer {
     return new HTMLRenderer('file_upload', []);
+  },
+  'register' => function (): HTMLRenderer {
+    return new HTMLRenderer('register', []);
+  },
+  'form/register' => function (): RedirectRenderer {
+    if (Authenticate::isLoggedIn()) {
+      FlashData::setFlashData('error', 'You are already logged in.');
+      return new RedirectRenderer('/');
+    }
+
+    try {
+      // リクエストメソッドがPOSTかどうかをチェックします
+      if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
+
+      $required_fields = [
+          'username' => ValueType::STRING,
+          'email' => ValueType::EMAIL,
+          'password' => ValueType::PASSWORD,
+          'confirm_password' => ValueType::PASSWORD,
+      ];
+
+      $userDao = DAOFactory::getUserDAO();
+
+      // シンプルな検証
+      $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+
+      if($validatedData['confirm_password'] !== $validatedData['password']){
+          FlashData::setFlashData('error', 'Invalid Password!');
+          return new RedirectRenderer('register');
+      }
+
+      // Eメールは一意でなければならないので、Eメールがすでに使用されていないか確認します
+      if($userDao->getByEmail($validatedData['email'])){
+          FlashData::setFlashData('error', 'Email is already in use!');
+          return new RedirectRenderer('register');
+      }
+
+      // 新しいUserオブジェクトを作成します
+      $user = new User(
+          username: $validatedData['username'],
+          email: $validatedData['email'],
+      );
+
+      // データベースにユーザーを作成しようとします
+      $success = $userDao->create($user, $validatedData['password']);
+
+      if (!$success) throw new Exception('Failed to create new user!');
+
+      // ユーザーログイン
+      Authenticate::loginAsUser($user);
+
+      FlashData::setFlashData('success', 'Account successfully created.');
+      return new RedirectRenderer('/');
+  } catch (\InvalidArgumentException $e) {
+      error_log($e->getMessage());
+
+      FlashData::setFlashData('error', 'Invalid Data.');
+      return new RedirectRenderer('register');
+  } catch (Exception $e) {
+      error_log($e->getMessage());
+
+      FlashData::setFlashData('error', 'An error occurred.');
+      return new RedirectRenderer('register');
+  }
+
+    return new RedirectRenderer('/');
   },
   // 画像アップロード
   'api/images/upload' => function (): JSONRenderer {

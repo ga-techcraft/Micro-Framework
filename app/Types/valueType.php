@@ -8,4 +8,6 @@ enum ValueType: string
     case INT = 'int';
     case FLOAT = 'float';
     case DATE = 'date'; // YYYY-MM-DD string
+    case EMAIL = 'email';
+    case PASSWORD = 'password';
 }
