@@ -19,7 +19,10 @@ use Exception;
 
 
 return [
-  '' => function (): HTMLRenderer {
+  '' => function (): HTTPRenderer {
+    if (!Authenticate::isLoggedIn()) {
+      return new RedirectRenderer('login');
+    }
     return new HTMLRenderer('component/file_upload', []);
   },
   'register' => function (): HTMLRenderer {
@@ -98,7 +101,7 @@ return [
   'form/login'=>function(): HTTPRenderer{
     if(Authenticate::isLoggedIn()){
         FlashData::setFlashData('error', 'You are already logged in.');
-        return new RedirectRenderer('random/part');
+        return new RedirectRenderer('');
     }
 
     try {
@@ -140,7 +143,10 @@ return [
 },
 
   // 画像アップロード
-  'api/images/upload' => function (): JSONRenderer {
+  'api/images/upload' => function (): HTTPRenderer {
+    if (!Authenticate::isLoggedIn()) {
+      return new RedirectRenderer('login');
+    }
     try {
       if (!isset($_FILES['image'])) {
         throw new \InvalidArgumentException("No file uploaded.");

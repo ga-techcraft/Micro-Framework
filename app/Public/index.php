@@ -5,7 +5,7 @@ spl_autoload_register(function($class) {
     if (file_exists(stream_resolve_include_path($file))) include($file);
 });
 
-session_start();
+// session_start();
 
 $uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($uri, PHP_URL_PATH);
@@ -14,8 +14,11 @@ $path = trim($path, '/');
 $routes = include __DIR__ . '/../Routing/routes.php';
 
 if (isset($routes[$path])) {
+  $middlewareRegister = include __DIR__ . '/../Middleware/middleware-register.php';
+  $middlewares = $middlewareRegister['global'];
+  $middlewareHandler = new \Middleware\MiddlewareHandler(array_map(fn($middlewareClass) => new $middlewareClass(), $middlewares));
 
-  $renderer = $routes[$path]();
+  $renderer = $middlewareHandler->run($routes[$path]);
   foreach ($renderer->getField() as $key => $value) {
     header($key . ': ' . $value);
   }

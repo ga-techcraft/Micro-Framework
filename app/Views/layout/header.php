@@ -8,7 +8,8 @@
 </head>
 <body>
   <header>
-    <h1>Micro-Framework</h1>
+    <h1 class="text-center mt-5">Micro-Framework</h1>
+
   </header>
 
   <main>
