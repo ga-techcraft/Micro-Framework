@@ -14,16 +14,26 @@ $path = trim($path, '/');
 $routes = include __DIR__ . '/../Routing/routes.php';
 
 if (isset($routes[$path])) {
-  $middlewareRegister = include __DIR__ . '/../Middleware/middleware-register.php';
-  $middlewares = $middlewareRegister['global'];
-  $middlewareHandler = new \Middleware\MiddlewareHandler(array_map(fn($middlewareClass) => new $middlewareClass(), $middlewares));
+  $route = $routes[$path];
+  try {
+    if (!($route instanceof \Routing\Route)) throw new \Exception('Route is not instance of Route');
 
-  $renderer = $middlewareHandler->run($routes[$path]);
-  foreach ($renderer->getField() as $key => $value) {
-    header($key . ': ' . $value);
+    $middlewareRegister = include __DIR__ . '/../Middleware/middleware-register.php';
+    $middlewares = array_merge($middlewareRegister['global'], array_map(fn($routeAlias) => $middlewareRegister['aliases'][$routeAlias], $route->getMiddleware()));
+    $middlewareHandler = new \Middleware\MiddlewareHandler(array_map(fn($middlewareClass) => new $middlewareClass(), $middlewares));
+  
+    $renderer = $middlewareHandler->run($route->getCallback());
+    foreach ($renderer->getField() as $key => $value) {
+      header($key . ': ' . $value);
+    }
+    echo $renderer->getContent();
+    exit;
+
+  } catch (\Exception $e) {
+    http_response_code(500);
+    echo '500 Internal Server Error';
+    exit;
   }
-  echo $renderer->getContent();
-  exit;
 
 } else {
   http_response_code(404);

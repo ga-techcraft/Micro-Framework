@@ -16,24 +16,17 @@ use Helpers\Authenticate;
 use Models\User;
 use Response\FlashData;
 use Exception;
+use Routing\Route;
 
 
 return [
-  '' => function (): HTTPRenderer {
-    if (!Authenticate::isLoggedIn()) {
-      return new RedirectRenderer('login');
-    }
+  '' => Route::create('', function (): HTTPRenderer {
     return new HTMLRenderer('component/file_upload', []);
-  },
-  'register' => function (): HTMLRenderer {
+  })->setMiddleware(['auth']),
+  'register' => Route::create('register', function (): HTTPRenderer {
     return new HTMLRenderer('component/register', []);
-  },
-  'form/register' => function (): RedirectRenderer {
-    if (Authenticate::isLoggedIn()) {
-      FlashData::setFlashData('error', 'You are already logged in.');
-      return new RedirectRenderer('/');
-    }
-
+  })->setMiddleware(['guest']),
+  'form/register' => Route::create('form/register', function (): HTTPRenderer {
     try {
       // リクエストメソッドがPOSTかどうかをチェックします
       if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
@@ -90,20 +83,11 @@ return [
   }
 
     return new RedirectRenderer('/');
-  },
-  'login' => function (): HTTPRenderer {
-    if(Authenticate::isLoggedIn()) {
-      FlashData::setFlashData('error', 'You are already logged in.');
-      return new RedirectRenderer('');
-    }
+  })->setMiddleware(['guest']),
+  'login' => Route::create('login', function(): HTTPRenderer{
     return new HTMLRenderer('component/login', []);
-  },
-  'form/login'=>function(): HTTPRenderer{
-    if(Authenticate::isLoggedIn()){
-        FlashData::setFlashData('error', 'You are already logged in.');
-        return new RedirectRenderer('');
-    }
-
+  })->setMiddleware(['guest']),
+  'form/login'=>Route::create('form/login', function(): HTTPRenderer{
     try {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
 
@@ -134,19 +118,16 @@ return [
         FlashData::setFlashData('error', 'An error occurred.');
         return new RedirectRenderer('login');
     }
-},
+})->setMiddleware(['guest']),
 
-  'logout' => function (): RedirectRenderer {
+  'logout' => Route::create('logout', function (): HTTPRenderer {
     Authenticate::logoutUser();
     FlashData::setFlashData('success', 'Logged out successfully.');
     return new RedirectRenderer('');
-},
+})->setMiddleware(['auth']),
 
   // 画像アップロード
-  'api/images/upload' => function (): HTTPRenderer {
-    if (!Authenticate::isLoggedIn()) {
-      return new RedirectRenderer('login');
-    }
+  'api/images/upload' => Route::create('api/images/upload', function (): HTTPRenderer {
     try {
       if (!isset($_FILES['image'])) {
         throw new \InvalidArgumentException("No file uploaded.");
@@ -181,7 +162,7 @@ return [
       // $ImageDAOMemcachedImpl = new ImagesDAOMemcachedImpl();
       // $ImageDAOMemcachedImpl->create($images);
 
-      return new JSONRenderer([
+      return new HTTPRenderer([
         'uniqueString' => $uniqueString,
       ]);
     } catch (\Exception $e) {
@@ -189,16 +170,16 @@ return [
         'error' => $e->getMessage(),
       ]);
     }
-  },
+  })->setMiddleware(['auth']),
   // 画像本体データを返す
-  'api/images/view' => function (): BinaryRenderer {
+  'api/images/view' => Route::create('api/images/view', function (): HTTPRenderer {
     $uniqueString = $_GET['uniqueString'];
     $binaryPath = __DIR__ . '/../storage/images/' . $uniqueString;
     $mimeType = mime_content_type($binaryPath);
     return new BinaryRenderer($mimeType, $uniqueString);
-  },
+  })->setMiddleware(['auth']),
   // 画像の削除
-  'api/images/delete' => function (): HTMLRenderer {
+  'api/images/delete' => Route::create('api/images/delete', function (): HTTPRenderer {
     $uniqueString = $_GET['uniqueString'];
     try {
       ValidationHelper::validateFields([
@@ -229,5 +210,5 @@ return [
         'result' => 'Image deleted',
       ]);
     }
-  },
+  })->setMiddleware(['auth']),
 ];
