@@ -162,7 +162,7 @@ return [
       // $ImageDAOMemcachedImpl = new ImagesDAOMemcachedImpl();
       // $ImageDAOMemcachedImpl->create($images);
 
-      return new HTTPRenderer([
+      return new JSONRenderer([
         'uniqueString' => $uniqueString,
       ]);
     } catch (\Exception $e) {

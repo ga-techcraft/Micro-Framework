@@ -1,16 +1,17 @@
 <h1>画像アップロード</h1>
 <input id="file" type="file" name="image" accept="image/*" required>
-<button type="submit">アップロード</button>
+<button id="uploadButton" type="button">アップロード</button>
 
 <div id="view"></div>
 <div id="delete"></div>
 
 <script>
-  document.querySelector('button').addEventListener('click', function(e){
+  document.querySelector('#uploadButton').addEventListener('click', function(e){
     e.preventDefault();
     const file = document.getElementById('file').files[0];
     const formData = new FormData();
     formData.append('image', file);
+    formData.append('csrf_token', '<?= \Helpers\CrossSiteForgeryProtection::getToken() ?>');
     
     fetch('api/images/upload', {
       method: 'POST',
@@ -19,7 +20,7 @@
     .then(response => response.json())
     // .then(response => response.text())
     .then(data => {
-      console.log(data);
+      // console.log(data);
       if(data.error){
         alert(data.error);
       } else {
