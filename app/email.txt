@@ -1,0 +1,10 @@
+Subject: Hello World
+To: ykjustin007@gmail.com
+From: SpaceApp <ga.techcraft@gmail.com>
+
+Hello,
+
+This is the body of your email.
+
+Best regards,
+Kotaro

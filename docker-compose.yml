@@ -49,6 +49,15 @@ services:
     networks:
       - app-network
 
+  postfix:
+    build:
+      context: ./postfix
+    container_name: postfix
+    hostname: mail.local
+    restart: always
+    networks:
+      - app-network
+
 volumes:
   mysql-data:
 
