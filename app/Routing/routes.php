@@ -163,7 +163,14 @@ return [
       // $ImageDAOMemcachedImpl->create($images);
 
       return new JSONRenderer([
-        'uniqueString' => $uniqueString,
+        'signedViewURL' => Route::create('api/images/view', function(){})->getSignedURL([
+          'image_name' => $image['name'],
+          'uniqueString' => $uniqueString,
+        ]),
+        'signedDeleteURL' => Route::create('api/images/delete', function(){})->getSignedURL([
+          'image_name' => $image['name'],
+          'uniqueString' => $uniqueString,
+        ]),
       ]);
     } catch (\Exception $e) {
       return new JSONRenderer([
@@ -175,9 +182,14 @@ return [
   'api/images/view' => Route::create('api/images/view', function (): HTTPRenderer {
     $uniqueString = $_GET['uniqueString'];
     $binaryPath = __DIR__ . '/../storage/images/' . $uniqueString;
+    if(!file_exists($binaryPath)){
+      return new HTMLRenderer('component/result', [
+        'result' => 'Image not found',
+      ]);
+    } 
     $mimeType = mime_content_type($binaryPath);
     return new BinaryRenderer($mimeType, $uniqueString);
-  })->setMiddleware(['auth']),
+  })->setMiddleware(['signature']),
   // 画像の削除
   'api/images/delete' => Route::create('api/images/delete', function (): HTTPRenderer {
     $uniqueString = $_GET['uniqueString'];
@@ -210,5 +222,5 @@ return [
         'result' => 'Image deleted',
       ]);
     }
-  })->setMiddleware(['auth']),
+  })->setMiddleware(['signature']),
 ];

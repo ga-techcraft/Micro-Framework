@@ -24,8 +24,8 @@
       if(data.error){
         alert(data.error);
       } else {
-        const viewPath = `http://localhost:8080/api/images/view?uniqueString=${data.uniqueString}`;
-        const deletePath = `http://localhost:8080/api/images/delete?uniqueString=${data.uniqueString}`;
+        const viewPath = `${data.signedViewURL}`;
+        const deletePath = `${data.signedDeleteURL}`;
 
         document.querySelector('#view').innerHTML = `<button onclick="copyToClipboard('${viewPath}')">表示用URLをコピー</button>`;
         document.querySelector('#delete').innerHTML = `<button onclick="copyToClipboard('${deletePath}')">削除用URLをコピー</button>`;

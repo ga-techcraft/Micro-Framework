@@ -2,6 +2,7 @@
 
 namespace Routing;
 
+use Helpers\Settings;
 use Closure;
 
 class Route
@@ -44,5 +45,55 @@ class Route
     public function getPath(): string
     {
         return $this->path;
+    }
+
+    private function getBaseURL(): string{
+      // PHPはコマンドラインから実行されている場合、$_SERVERは定義されていない。
+      if(!isset($_SERVER)) return $this->getPath();
+
+      $host = $_SERVER['HTTP_HOST'];
+      return sprintf("%s/%s", $host, $this->getPath());
+    }
+
+    private function getSecretKey(): string{
+      return Settings::readEnvInfo("SIGNATURE_SECRET_KEY");
+    }
+
+    public function getSignedURL(array $queryParameters): string
+    {
+      $url = $this->getBaseURL();
+
+      // 組み込み関数のhttp_build_queryを使用すると、 URLパラメータのクエリ文字列を配列から作成することができます。
+      $queryString = http_build_query($queryParameters);
+
+      // HMAC-SHA256を使って署名を作成します。
+      $signature = hash_hmac('sha256', $url . '?' . $queryString, $this->getSecretKey());
+
+      // パーツを組み合わせて値を返します。
+      return sprintf("%s?%s&signature=%s", $url, $queryString, $signature);
+    }
+
+    public function isSignedURLValid(string $url, bool $absolute = true): bool
+    {
+      // URLデータを含む連想配列を返すparse_url組み込み関数を使用して、URLから署名を抽出します。
+      $parsedUrl = parse_url($url);
+      if(!isset($parsedUrl['query'])) return false;
+
+      $queryParams = [];
+
+      // $parsedUrl['query']は、"param1=value1&param2=value2 "の形式でキーと値のペアを返し、parse_strはそれらを配列に挿入するために文字列をパースすることができます。
+      parse_str($parsedUrl['query'], $queryParams);
+
+      if(!isset($queryParams['signature'])) return false;
+
+      $signature = $queryParams['signature'];
+
+      // 検証用URLから署名を削除します。
+      $urlWithoutSignature = str_replace('&signature=' . $signature, '', $url);
+
+      // URL生成時と同じ方法で署名を再作成します。
+      $expectedSignature = hash_hmac('sha256', $urlWithoutSignature, $this->getSecretKey());
+
+      return hash_equals($expectedSignature, $signature);
     }
 }
