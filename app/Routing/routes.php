@@ -166,6 +166,7 @@ return [
         'signedViewURL' => Route::create('api/images/view', function(){})->getSignedURL([
           'image_name' => $image['name'],
           'uniqueString' => $uniqueString,
+          'expiration' => time() + 60 * 60,
         ]),
         'signedDeleteURL' => Route::create('api/images/delete', function(){})->getSignedURL([
           'image_name' => $image['name'],

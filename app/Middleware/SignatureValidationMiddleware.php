@@ -6,6 +6,7 @@ use Response\FlashData;
 use Response\HTTPRenderer;
 use Response\Render\RedirectRenderer;
 use Routing\Route;
+use Helpers\ValidationHelper;
 
 class SignatureValidationMiddleware implements Middleware
 {
@@ -21,6 +22,10 @@ class SignatureValidationMiddleware implements Middleware
         // URLに有効な署名があるかチェックします。
         if ($route->isSignedURLValid($_SERVER['HTTP_HOST'] . $currentPath)) {
             // 署名が有効であれば、ミドルウェアチェインを進めます。
+            if(isset($_GET['expiration']) && ValidationHelper::integer($_GET['expiration']) < time()){
+              FlashData::setFlashData('error', "The URL has expired.");
+              return new RedirectRenderer('');
+          }
             return $next();
         } else {
             // 署名が有効でない場合、ランダムな部分にリダイレクトします。
